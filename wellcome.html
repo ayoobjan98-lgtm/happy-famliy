@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>🎂 تولدت مبارک 🎂</title>
+    
+    <style>
+        :root {
+            --neon-blue: #00d2ff;
+            --neon-pink: #ff007f;
+            --bg-color: #05050a;
+        }
+        
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: var(--bg-color);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        #game-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 1;
+        }
+
+        #greeting-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 5;
+            pointer-events: none;
+        }
+
+        .هدیه {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+            text-align: center;
+            color: white;
+            background: rgba(5, 5, 10, 0.75);
+            backdrop-filter: blur(8px);
+            padding: 30px 50px;
+            border-radius: 20px;
+            border: 2px solid var(--neon-blue);
+            box-shadow: 0 0 30px rgba(0, 210, 255, 0.5), inset 0 0 20px rgba(0, 210, 255, 0.2);
+            max-width: 90%;
+            width: 500px;
+        }
+
+        .هدیه p {
+            font-size: 1.2rem;
+            line-height: 1.8;
+            margin: 10px 0;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.7);
+            color: #e0f7ff;
+        }
+
+        .هدیه p:first-child {
+            font-size: 1.8rem;
+            color: var(--neon-pink);
+            text-shadow: 0 0 15px var(--neon-pink);
+            margin-bottom: 20px;
+        }
+
+        .continer {
+            margin-top: 25px;
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: white;
+            background: transparent;
+            border-radius: 50px;
+            cursor: pointer;
+            text-transform: uppercase;
+            text-decoration: none;
+            transition: all 0.3s;
+            border: 2px solid var(--neon-blue);
+            box-shadow: 0 0 15px rgba(0, 210, 255, 0.4), inset 0 0 15px rgba(0, 210, 255, 0.2);
+        }
+
+        .btn a {
+            color: white;
+            text-decoration: none;
+            display: block;
+        }
+
+        .btn:hover, .btn:active {
+            background: var(--neon-blue);
+            color: #000;
+            box-shadow: 0 0 30px rgba(0, 210, 255, 0.8);
+        }
+        .btn:hover a {
+            color: #000;
+        }
+
+        /* دکمه‌ی «نمی‌پذیرم» با رنگ صورتی */
+        .btn-decline {
+            border-color: var(--neon-pink);
+            box-shadow: 0 0 15px rgba(255, 0, 127, 0.4), inset 0 0 15px rgba(255, 0, 127, 0.2);
+            color: var(--neon-pink);
+        }
+        .btn-decline:hover {
+            background: var(--neon-pink);
+            color: #000;
+            box-shadow: 0 0 30px rgba(255, 0, 127, 0.8);
+        }
+
+        @media (max-width: 768px) {
+            .هدیه {
+                padding: 20px;
+                width: 85%;
+            }
+            .هدیه p {
+                font-size: 0.95rem;
+            }
+            .هدیه p:first-child {
+                font-size: 1.4rem;
+            }
+            .btn {
+                font-size: 1.1rem;
+                padding: 12px 25px;
+            }
+            .continer {
+                gap: 10px;
+            }
+        }
+    </style>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+</head>
+<body>
+
+    <!-- Canvas for background game (created by GameManager) -->
+    <!-- Canvas for 3D birthday animations -->
+    <canvas id="greeting-canvas"></canvas>
+
+    <!-- Birthday message overlay -->
+    <div class="هدیه">
+        <p>سلام خواهر عزیزم  تولد مبارک</p>
+        <p>انشاالله خدا بهت عمر بهت بدهد</p>
+        <p>امیدوارم از این هدیه قشنگ داداشت خوشت اومده باشه</p>
+        <p>چیزی ندارم بهت بدم ولی از هنر بهت یه هدیه میدم که واقعا خودم ازش خوشم ماید امیدوارم تو هم خوشت بیاد</p>
+        <p>انشاالله زمانی من بهت هدیه هایی میدم که اصلا تصورش برای ما الان غیر ممکن است</p>
+        <p>ممنونم که این هدیه را  پذیرفتی</p>
+        <div class="continer">
+            <button type="button" class="btn"><a href="a.html">Start Game !</a></button>
+            <button type="button" class="btn btn-decline" id="decline-btn">نمی‌پذیرم 😢</button>
+        </div>
+    </div>
+
+    <!-- Main game script (unchanged, exactly as before) -->
+    <script type="module">
+        import * as THREE from 'three';
+        import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+        import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+        import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+
+        // ========== GAME CODE (FROM YOUR INDEX.HTML) ==========
+        const TRACK_WIDTH = 12;
+        const SEGMENT_LENGTH = 50;
+        const VISIBLE_SEGMENTS = 6;
+        const BASE_SPEED = 30;
+        const MAX_LIVES = 3;
+        const COLORS = {
+            bg: 0x020205,
+            player: 0xffffff,
+            trackCenter: 0x111111,
+            trackEdge: 0x00aaff,
+            obstacleDanger: 0xff0044,
+            coin: 0xffaa00,
+            star: 0xffffff
+        };
+
+        const randomRange = (min, max) => Math.random() * (max - min) + min;
+
+        class ParticleSystem {
+            constructor(scene) {
+                this.scene = scene;
+                this.particles = [];
+                this.geometry = new THREE.BoxGeometry(0.2, 0.2, 0.2);
+            }
+            spawn(position, color, count, type = 'burst') {
+                const material = new THREE.MeshBasicMaterial({ color, transparent: true });
+                for (let i = 0; i < count; i++) {
+                    const mesh = new THREE.Mesh(this.geometry, material);
+                    mesh.position.copy(position);
+                    let velocity;
+                    if (type === 'burst') {
+                        velocity = new THREE.Vector3(randomRange(-5,5), randomRange(2,8), randomRange(-5,5));
+                    } else {
+                        velocity = new THREE.Vector3(randomRange(-0.5,0.5), randomRange(0,1), randomRange(2,5));
+                        mesh.scale.setScalar(randomRange(0.5,1.5));
+                    }
+                    this.scene.add(mesh);
+                    this.particles.push({ mesh, velocity, life:1.0, decay: type==='burst'? randomRange(1.5,2.5): randomRange(2.0,4.0) });
+                }
+            }
+            update(dt) {
+                for (let i=this.particles.length-1; i>=0; i--) {
+                    const p = this.particles[i];
+                    p.life -= p.decay*dt;
+                    if (p.life <= 0) {
+                        this.scene.remove(p.mesh);
+                        p.mesh.geometry.dispose();
+                        p.mesh.material.dispose();
+                        this.particles.splice(i,1);
+                    } else {
+                        p.velocity.y -= 15*dt;
+                        p.mesh.position.addScaledVector(p.velocity, dt);
+                        p.mesh.rotation.x += dt*2;
+                        p.mesh.rotation.y += dt*2;
+                        p.mesh.material.opacity = p.life;
+                        p.mesh.scale.setScalar(p.life);
+                    }
+                }
+            }
+            clear() {
+                this.particles.forEach(p => { this.scene.remove(p.mesh); p.mesh.material.dispose(); });
+                this.particles = [];
+            }
+        }
+
+        class TrackGenerator {
+            constructor(scene) {
+                this.scene = scene;
+                this.segments = [];
+                this.trackGroup = new THREE.Group();
+                this.scene.add(this.trackGroup);
+                this.floorMat = new THREE.MeshStandardMaterial({ color: COLORS.trackCenter, roughness:0.1, metalness:0.8 });
+                this.edgeMat = new THREE.MeshStandardMaterial({ color: COLORS.trackEdge, emissive: COLORS.trackEdge, emissiveIntensity:1 });
+                for (let i=0; i<VISIBLE_SEGMENTS; i++) this.createSegment(-i*SEGMENT_LENGTH);
+            }
+            createSegment(zPos) {
+                const group = new THREE.Group();
+                const floorGeo = new THREE.BoxGeometry(TRACK_WIDTH,1,SEGMENT_LENGTH);
+                const floor = new THREE.Mesh(floorGeo, this.floorMat);
+                floor.position.y = -0.5;
+                floor.receiveShadow = true;
+                group.add(floor);
+                const edgeGeo = new THREE.BoxGeometry(0.5,1.2,SEGMENT_LENGTH);
+                const left = new THREE.Mesh(edgeGeo, this.edgeMat);
+                left.position.set(-TRACK_WIDTH/2-0.25, -0.4, 0);
+                const right = new THREE.Mesh(edgeGeo, this.edgeMat);
+                right.position.set(TRACK_WIDTH/2+0.25, -0.4, 0);
+                group.add(left, right);
+                group.position.z = zPos;
+                this.trackGroup.add(group);
+                this.segments.push(group);
+            }
+            update(playerZ) {
+                this.segments.forEach(seg => {
+                    if (seg.position.z > playerZ + SEGMENT_LENGTH) {
+                        const minZ = Math.min(...this.segments.map(s => s.position.z));
+                        seg.position.z = minZ - SEGMENT_LENGTH;
+                    }
+                });
+            }
+        }
+
+        class ObstacleManager {
+            constructor(scene, particleSystem) {
+                this.scene = scene;
+                this.particleSystem = particleSystem;
+                this.items = [];
+                this.cubeGeo = new THREE.BoxGeometry(2,2,2);
+                this.pillarGeo = new THREE.CylinderGeometry(1,1,6,8);
+                this.coinGeo = new THREE.CylinderGeometry(0.8,0.8,0.2,16);
+                this.coinGeo.rotateX(Math.PI/2);
+                this.dangerMat = new THREE.MeshStandardMaterial({ color:COLORS.obstacleDanger, emissive:COLORS.obstacleDanger, emissiveIntensity:0.8, roughness:0.2, metalness:0.8 });
+                this.coinMat = new THREE.MeshStandardMaterial({ color:COLORS.coin, emissive:COLORS.coin, emissiveIntensity:0.6, metalness:1.0, roughness:0.1 });
+                this.box3 = new THREE.Box3();
+            }
+            spawn(zPos) {
+                if (zPos > -50) return;
+                const roll = Math.random();
+                if (roll < 0.2) this.spawnItem('coin', zPos, randomRange(-TRACK_WIDTH/2+1, TRACK_WIDTH/2-1), 1);
+                else if (roll < 0.5) this.spawnItem('static', zPos, randomRange(-TRACK_WIDTH/2+1.5, TRACK_WIDTH/2-1.5), 1);
+                else if (roll < 0.75) this.spawnItem('slider', zPos, 0, 1);
+                else this.spawnItem('pillar', zPos, randomRange(-TRACK_WIDTH/2+2, TRACK_WIDTH/2-2), 3);
+            }
+            spawnItem(type, z, x, y) {
+                let mesh;
+                if (type === 'coin') mesh = new THREE.Mesh(this.coinGeo, this.coinMat);
+                else if (type === 'pillar') mesh = new THREE.Mesh(this.pillarGeo, this.dangerMat);
+                else mesh = new THREE.Mesh(this.cubeGeo, this.dangerMat);
+                mesh.position.set(x, y, z);
+                mesh.castShadow = mesh.receiveShadow = true;
+                this.scene.add(mesh);
+                this.items.push({ mesh, type, collected:false, speedX: type==='slider'? randomRange(5,10)*(Math.random()>0.5?1:-1) : 0 });
+            }
+            update(dt, playerZ) {
+                for (let i=this.items.length-1; i>=0; i--) {
+                    const item = this.items[i];
+                    if (item.type==='coin') {
+                        item.mesh.rotation.y += dt*3;
+                        item.mesh.position.y = 1 + Math.sin(Date.now()*0.005 + item.mesh.position.z)*0.3;
+                    } else if (item.type==='pillar') {
+                        item.mesh.rotation.x += dt*2;
+                        item.mesh.rotation.z += dt*2;
+                    } else if (item.type==='slider') {
+                        item.mesh.position.x += item.speedX*dt;
+                        if (item.mesh.position.x > TRACK_WIDTH/2-1 || item.mesh.position.x < -TRACK_WIDTH/2+1) item.speedX *= -1;
+                    }
+                    if (item.mesh.position.z > playerZ+20 || item.collected) {
+                        this.scene.remove(item.mesh);
+                        this.items.splice(i,1);
+                    }
+                }
+            }
+            checkCollisions(playerBox) {
+                let hit = false, coins = 0;
+                for (let item of this.items) {
+                    if (item.collected) continue;
+                    this.box3.setFromObject(item.mesh);
+                    if (this.box3.intersectsBox(playerBox)) {
+                        if (item.type==='coin') {
+                            item.collected = true;
+                            coins++;
+                            this.particleSystem.spawn(item.mesh.position, COLORS.coin, 15, 'burst');
+                        } else {
+                            hit = true;
+                            item.collected = true;
+                            this.particleSystem.spawn(item.mesh.position, COLORS.obstacleDanger, 20, 'burst');
+                        }
+                    }
+                }
+                return { hitObstacle: hit, coinsCollected: coins };
+            }
+            clear() {
+                this.items.forEach(item => this.scene.remove(item.mesh));
+                this.items = [];
+            }
+        }
+
+        class Player {
+            constructor(scene, particleSystem) {
+                this.scene = scene;
+                this.particleSystem = particleSystem;
+                const geo = new THREE.SphereGeometry(1,32,32);
+                const mat = new THREE.MeshStandardMaterial({ color:0xffffff, metalness:1.0, roughness:0.1 });
+                this.mesh = new THREE.Mesh(geo, mat);
+                this.mesh.position.set(0,1,0);
+                this.mesh.castShadow = true;
+                this.scene.add(this.mesh);
+                this.velocity = new THREE.Vector3();
+                this.gravity = -50;
+                this.jumpForce = 20;
+                this.isGrounded = true;
+                this.targetX = 0;
+                this.speed = BASE_SPEED;
+                this.invulnerableTimer = 0;
+                this.knockbackVel = 0;
+                this.box3 = new THREE.Box3();
+            }
+            setTargetX(xNorm) { this.targetX = xNorm * (TRACK_WIDTH/2 - 1); }
+            jump() { if (this.isGrounded) { this.velocity.y = this.jumpForce; this.isGrounded = false; } }
+            hit() { if (this.invulnerableTimer>0) return false; this.invulnerableTimer=2.0; this.knockbackVel=20; return true; }
+            update(dt) {
+                let curSpeed = this.speed;
+                if (this.knockbackVel > 0) { curSpeed -= this.knockbackVel; this.knockbackVel -= 40*dt; if (this.knockbackVel<0) this.knockbackVel=0; }
+                this.mesh.position.z -= curSpeed*dt;
+                this.mesh.position.x += (this.targetX - this.mesh.position.x)*10*dt;
+                this.velocity.y += this.gravity*dt;
+                this.mesh.position.y += this.velocity.y*dt;
+                if (this.mesh.position.y <= 1) { this.mesh.position.y=1; this.velocity.y=0; this.isGrounded=true; }
+                this.mesh.rotation.x -= curSpeed*dt*0.5;
+                this.mesh.rotation.z -= (this.targetX - this.mesh.position.x)*dt*2;
+                if (this.invulnerableTimer>0) {
+                    this.invulnerableTimer -= dt;
+                    this.mesh.material.opacity = Math.sin(this.invulnerableTimer*30)*0.5+0.5;
+                    this.mesh.material.transparent = true;
+                } else {
+                    this.mesh.material.opacity = 1.0;
+                    this.mesh.material.transparent = false;
+                }
+                this.box3.setFromObject(this.mesh);
+                if (Math.random()<0.3 && this.isGrounded) {
+                    const pos = this.mesh.position.clone();
+                    pos.y -= 0.8;
+                    this.particleSystem.spawn(pos, COLORS.trackEdge, 1, 'trail');
+                }
+            }
+            reset() { this.mesh.position.set(0,1,0); this.velocity.set(0,0,0); this.speed=BASE_SPEED; this.invulnerableTimer=0; this.knockbackVel=0; this.targetX=0; }
+        }
+
+        class GameManager {
+            constructor() {
+                this.initThree();
+                this.initGameSystems();
+                this.initUI();
+                this.initInput();
+                this.clock = new THREE.Clock();
+                this.state = 'playing';
+                this.score = 0;
+                this.lives = MAX_LIVES;
+                this.timeElapsed = 0;
+                this.lastSpawnZ = 0;
+                this.screenShakeTimer = 0;
+                this.animate();
+            }
+            initThree() {
+                this.scene = new THREE.Scene();
+                this.scene.background = new THREE.Color(COLORS.bg);
+                this.scene.fog = new THREE.Fog(COLORS.bg, 20, 100);
+                this.camera = new THREE.PerspectiveCamera(70, window.innerWidth/window.innerHeight, 0.1, 150);
+                this.cameraBaseOffset = new THREE.Vector3(0,4,8);
+                this.renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: "high-performance" });
+                this.renderer.setSize(window.innerWidth, window.innerHeight);
+                this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+                this.renderer.shadowMap.enabled = true;
+                this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+                document.body.appendChild(this.renderer.domElement);
+                this.renderer.domElement.id = 'game-canvas';
+                const renderScene = new RenderPass(this.scene, this.camera);
+                const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
+                bloomPass.threshold = 0.1; bloomPass.strength=1.2; bloomPass.radius=0.5;
+                this.composer = new EffectComposer(this.renderer);
+                this.composer.addPass(renderScene);
+                this.composer.addPass(bloomPass);
+                this.scene.add(new THREE.AmbientLight(0xffffff, 0.3));
+                this.dirLight = new THREE.DirectionalLight(0xffffff, 1.5);
+                this.dirLight.position.set(10,20,10);
+                this.dirLight.castShadow = true;
+                this.dirLight.shadow.camera.top=20; this.dirLight.shadow.camera.bottom=-20; this.dirLight.shadow.camera.left=-20; this.dirLight.shadow.camera.right=20;
+                this.scene.add(this.dirLight);
+                this.createStars();
+                window.addEventListener('resize', this.onWindowResize.bind(this));
+            }
+            createStars() {
+                const starGeo = new THREE.BufferGeometry();
+                const posArray = new Float32Array(2000*3);
+                for (let i=0; i<2000*3; i++) posArray[i] = (Math.random()-0.5)*400;
+                starGeo.setAttribute('position', new THREE.BufferAttribute(posArray,3));
+                const starMat = new THREE.PointsMaterial({ size:0.5, color:COLORS.star, transparent:true, opacity:0.8 });
+                this.stars = new THREE.Points(starGeo, starMat);
+                this.scene.add(this.stars);
+            }
+            initGameSystems() {
+                this.particleSystem = new ParticleSystem(this.scene);
+                this.trackGen = new TrackGenerator(this.scene);
+                this.player = new Player(this.scene, this.particleSystem);
+                this.obstacleManager = new ObstacleManager(this.scene, this.particleSystem);
+            }
+            initUI() {
+                this.scoreDisplay = document.getElementById('score-display');
+                this.livesContainer = document.getElementById('lives-container');
+                this.gameOverScreen = document.getElementById('game-over-screen');
+                this.finalScoreEl = document.getElementById('final-score');
+                this.highScoreEl = document.getElementById('high-score');
+                document.getElementById('restart-btn')?.addEventListener('click', ()=> this.restart());
+                this.highScore = localStorage.getItem('neonRunnerHighScore') || 0;
+            }
+            initInput() {
+                const handleMove = (x) => { if (this.state!=='playing') return; this.player.setTargetX((x/window.innerWidth)*2-1); };
+                window.addEventListener('mousemove', e => handleMove(e.clientX));
+                window.addEventListener('touchmove', e => handleMove(e.touches[0].clientX), {passive: false});
+                const handleJump = (e) => { if (e.target.tagName==='BUTTON') return; if (this.state==='playing') this.player.jump(); };
+                window.addEventListener('mousedown', handleJump);
+                window.addEventListener('touchstart', handleJump, {passive: false});
+                window.addEventListener('keydown', e => { if (e.code==='Space') { e.preventDefault(); handleJump(e); } });
+            }
+            updateUI() {
+                if (this.scoreDisplay) this.scoreDisplay.innerText = `Score: ${Math.floor(this.score)}`;
+                if (this.livesContainer) {
+                    let h = ''; for (let i=0; i<this.lives; i++) h+='<span class="life">♥</span>'; this.livesContainer.innerHTML = h;
+                }
+            }
+            triggerScreenShake(dur) { this.screenShakeTimer = dur; }
+            gameOver() {
+                this.state='gameover';
+                if (this.score>this.highScore) { this.highScore=Math.floor(this.score); localStorage.setItem('neonRunnerHighScore', this.highScore); }
+                if (this.finalScoreEl) this.finalScoreEl.innerText = `Score: ${Math.floor(this.score)}`;
+                if (this.highScoreEl) this.highScoreEl.innerText = `High Score: ${this.highScore}`;
+                this.gameOverScreen?.classList.add('visible');
+            }
+            restart() {
+                this.state='playing'; this.score=0; this.lives=MAX_LIVES; this.timeElapsed=0; this.lastSpawnZ=0;
+                this.player.reset(); this.obstacleManager.clear(); this.particleSystem.clear();
+                this.gameOverScreen?.classList.remove('visible'); this.updateUI();
+            }
+            animate() {
+                requestAnimationFrame(this.animate.bind(this));
+                const dt = Math.min(this.clock.getDelta(), 0.1);
+                if (this.state==='playing') {
+                    this.timeElapsed += dt;
+                    this.player.speed = BASE_SPEED + Math.floor(this.timeElapsed/10)*5;
+                    this.score += dt*(this.player.speed/10);
+                    this.player.update(dt);
+                    this.trackGen.update(this.player.mesh.position.z);
+                    this.obstacleManager.update(dt, this.player.mesh.position.z);
+                    this.particleSystem.update(dt);
+                    const currentZ = this.player.mesh.position.z;
+                    if (currentZ-80 < this.lastSpawnZ) {
+                        this.obstacleManager.spawn(this.lastSpawnZ);
+                        this.lastSpawnZ -= Math.max(10, 40 - (this.player.speed-BASE_SPEED));
+                    }
+                    const col = this.obstacleManager.checkCollisions(this.player.box3);
+                    if (col.coinsCollected>0) this.score += 100*col.coinsCollected;
+                    if (col.hitObstacle) {
+                        if (this.player.hit()) {
+                            this.lives--;
+                            this.triggerScreenShake(0.3);
+                            this.updateUI();
+                            if (this.lives<=0) this.gameOver();
+                        }
+                    }
+                    this.updateUI();
+                }
+                const idealPos = this.player.mesh.position.clone().add(this.cameraBaseOffset);
+                this.camera.position.lerp(idealPos, 0.1);
+                const lookTarget = this.player.mesh.position.clone();
+                lookTarget.z -= 15;
+                this.camera.lookAt(lookTarget);
+                if (this.screenShakeTimer>0) {
+                    this.screenShakeTimer -= dt;
+                    const s = this.screenShakeTimer*2;
+                    this.camera.position.x += randomRange(-s,s);
+                    this.camera.position.y += randomRange(-s,s);
+                }
+                if (this.stars) { this.stars.position.z = this.player.mesh.position.z; this.stars.rotation.y += dt*0.05; }
+                this.dirLight.position.z = this.player.mesh.position.z+10;
+                this.dirLight.target = this.player.mesh;
+                this.composer.render();
+            }
+            onWindowResize() {
+                this.camera.aspect = window.innerWidth/window.innerHeight;
+                this.camera.updateProjectionMatrix();
+                this.renderer.setSize(window.innerWidth, window.innerHeight);
+                this.composer.setSize(window.innerWidth, window.innerHeight);
+            }
+        }
+
+        // Start game when DOM ready
+        window.addEventListener('load', () => new GameManager());
+    </script>
+
+    <!-- 3D Birthday Animations Script -->
+    <script type="module">
+        import * as THREE from 'three';
+        import { FontLoader } from 'three/addons/loaders/FontLoader.js';
+        import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
+
+        const canvas = document.getElementById('greeting-canvas');
+        const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth/window.innerHeight, 0.1, 50);
+        camera.position.set(0, 0, 12);
+
+        scene.add(new THREE.AmbientLight(0xffffff, 0.3));
+        const pinkLight = new THREE.PointLight(0xff007f, 2, 20);
+        pinkLight.position.set(2, 1, 3);
+        scene.add(pinkLight);
+        const blueLight = new THREE.PointLight(0x00d2ff, 2, 20);
+        blueLight.position.set(-2, -1, 3);
+        scene.add(blueLight);
+
+        const heartShape = new THREE.Shape();
+        heartShape.moveTo(0, 0.5);
+        heartShape.bezierCurveTo(0, 1, -1, 1.5, -2, 0.5);
+        heartShape.bezierCurveTo(-3, -0.5, -1.5, -1.5, 0, -0.5);
+        heartShape.bezierCurveTo(1.5, -1.5, 3, -0.5, 2, 0.5);
+        heartShape.bezierCurveTo(1, 1.5, 0, 1, 0, 0.5);
+        const heartGeo = new THREE.ExtrudeGeometry(heartShape, { depth: 0.2, bevelEnabled: true, bevelThickness: 0.1, bevelSize: 0.1 });
+
+        const heartsGroup = new THREE.Group();
+        const heartMat = new THREE.MeshStandardMaterial({ color: 0xff007f, emissive: 0xff007f, emissiveIntensity: 0.8, roughness: 0.2, metalness: 0.3 });
+        for (let i = 0; i < 20; i++) {
+            const heart = new THREE.Mesh(heartGeo, heartMat);
+            const angle = (i / 20) * Math.PI * 2;
+            const radius = 4 + Math.random() * 2;
+            heart.position.x = Math.cos(angle) * radius;
+            heart.position.y = Math.sin(angle) * radius * 0.5 - 1;
+            heart.position.z = (Math.random() - 0.5) * 3;
+            heart.rotation.z = Math.random() * Math.PI;
+            heart.userData = {
+                angle: angle,
+                radius: radius,
+                speed: 0.2 + Math.random() * 0.3,
+                floatAmp: 0.5 + Math.random(),
+                floatSpeed: 0.5 + Math.random() * 0.5
+            };
+            heartsGroup.add(heart);
+        }
+        scene.add(heartsGroup);
+
+        const starsGroup = new THREE.Group();
+        const starGeo = new THREE.SphereGeometry(0.15, 8, 8);
+        const starMat = new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xffffff, emissiveIntensity: 1 });
+        for (let i = 0; i < 40; i++) {
+            const star = new THREE.Mesh(starGeo, starMat);
+            star.position.set((Math.random()-0.5)*10, (Math.random()-0.5)*8, (Math.random()-0.5)*5-2);
+            star.userData = { speed: 0.1+Math.random()*0.5, phase: Math.random()*Math.PI*2 };
+            starsGroup.add(star);
+        }
+        scene.add(starsGroup);
+
+        let textMesh;
+        const loader = new FontLoader();
+        loader.load('https://unpkg.com/three@0.160.0/examples/fonts/helvetiker_regular.typeface.json', (font) => {
+            const textGeo = new TextGeometry('Happy Birthday!', {
+                font: font,
+                size: 0.9,
+                height: 0.2,
+                curveSegments: 12,
+                bevelEnabled: true,
+                bevelThickness: 0.03,
+                bevelSize: 0.02,
+            });
+            textGeo.computeBoundingBox();
+            const offsetX = -(textGeo.boundingBox.max.x - textGeo.boundingBox.min.x) / 2;
+            const mat = new THREE.MeshStandardMaterial({ 
+                color: 0x00d2ff, 
+                emissive: 0x00d2ff, 
+                emissiveIntensity: 0.7,
+                roughness: 0.2,
+                metalness: 0.8
+            });
+            textMesh = new THREE.Mesh(textGeo, mat);
+            textMesh.position.set(offsetX, 1.8, 0);
+            scene.add(textMesh);
+        });
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const time = Date.now() * 0.001;
+
+            heartsGroup.rotation.z += 0.002;
+            heartsGroup.children.forEach(heart => {
+                heart.rotation.z += 0.01;
+                heart.position.y += Math.sin(time * heart.userData.floatSpeed + heart.userData.angle) * 0.005;
+            });
+
+            starsGroup.children.forEach(star => {
+                star.material.opacity = 0.5 + Math.sin(time * star.userData.speed + star.userData.phase) * 0.5;
+            });
+
+            if (textMesh) {
+                textMesh.rotation.y = Math.sin(time * 0.5) * 0.2;
+                textMesh.position.y = 1.8 + Math.sin(time * 2) * 0.1;
+            }
+
+            pinkLight.intensity = 1.5 + Math.sin(time * 3) * 0.5;
+            blueLight.intensity = 1.5 + Math.cos(time * 3) * 0.5;
+
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+
+    <!-- اسکریپت دکمه‌ی فراری -->
+    <script>
+        (function() {
+            const btn = document.getElementById('decline-btn');
+            if (!btn) return;
+
+            // برای اینکه بتونیم جابجاش کنیم، باید position رو fixed کنیم
+            btn.style.position = 'fixed';
+            // موقعیت اولیه رو بر اساس جای فعلی توی flex تنظیم می‌کنیم (ولی بهتره با getBoundingClientRect بگیریم)
+            function updateInitialPosition() {
+                const rect = btn.getBoundingClientRect();
+                btn.style.left = rect.left + 'px';
+                btn.style.top = rect.top + 'px';
+                btn.style.margin = '0';
+                // بعد از اولین کلیک، دیگه flex تاثیری نداره
+            }
+            updateInitialPosition();
+            window.addEventListener('resize', updateInitialPosition);
+
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                // محدوده‌ی مجاز برای جابجایی (با در نظر گرفتن اندازه دکمه)
+                const btnWidth = btn.offsetWidth;
+                const btnHeight = btn.offsetHeight;
+                const maxX = window.innerWidth - btnWidth;
+                const maxY = window.innerHeight - btnHeight;
+                
+                const newX = Math.random() * maxX;
+                const newY = Math.random() * maxY;
+                
+                // یه انیمیشن نرم با transition
+                btn.style.transition = 'left 0.2s ease, top 0.2s ease';
+                btn.style.left = newX + 'px';
+                btn.style.top = newY + 'px';
+                
+                // جلوگیری از کلیک مجدد سریع (بعد از transition برمی‌گرده)
+                btn.style.pointerEvents = 'none';
+                setTimeout(() => {
+                    btn.style.pointerEvents = 'auto';
+                }, 200);
+            });
+
+            // برای موبایل: touchstart هم همین کار رو بکنه
+            btn.addEventListener('touchstart', function(e) {
+                e.preventDefault();
+                btn.click(); // از همون هندلر کلیک استفاده کن
+            }, {passive: false});
+        })();
+    </script>
+</body>
+</html>
